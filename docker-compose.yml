@@ -29,5 +29,26 @@ services:
       - db_data:/var/lib/mysql
       - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
 
+  # One-shot initializer: waits for the DB to accept connections and then
+  # imports schema.sql into the configured database. This runs after the
+  # `db` service starts and is safe to leave; it will succeed or no-op if
+  # the tables already exist.
+  db-init:
+    image: mysql:8.0
+    depends_on:
+      - db
+    restart: "no"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: misc
+      MYSQL_USER: miscuser
+      MYSQL_PASSWORD: miscpass
+    volumes:
+      - ./schema.sql:/schema.sql:ro
+    entrypoint: ["/bin/sh", "-c"]
+    command: |
+      "until mysql -h db -umiscuser -pmiscpass -e 'SELECT 1' >/dev/null 2>&1; do sleep 1; done; \
+      mysql -h db -umiscuser -pmiscpass misc < /schema.sql || true"
+
 volumes:
   db_data:
