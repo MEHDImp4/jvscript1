@@ -13,7 +13,7 @@ require_once "util.php";
 
 <body>
     <div class="container">
-        <h1>Mehdi's Resume Registry</h1>
+        <h1>Diouri Mehdi's Resume Registry</h1>
         <?php
         flashMessages();
 
