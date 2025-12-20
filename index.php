@@ -4,10 +4,8 @@
 <?php
 require_once 'bootstrap.php';
 
-// Ensure session is started
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
+$stmt = $pdo->query('SELECT profile_id, user_id, first_name, last_name, headline FROM Profile ORDER BY last_name, first_name');
+$profiles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="en">
