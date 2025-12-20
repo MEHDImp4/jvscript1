@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   app:
     image: ghcr.io/mehdimp4/jvscript1:latest
@@ -7,48 +5,6 @@ services:
     restart: unless-stopped
     ports:
       - "8080:80"  # host:container
-    environment:
-      DB_HOST: db
-      DB_PORT: 3306
-      DB_NAME: misc
-      DB_USER: miscuser
-      DB_PASS: miscpass
-    depends_on:
-      - db
+    # This project now uses a local SQLite database (`database.sqlite`).
+    # No DB service is required; the app will create `database.sqlite` on first run.
 
-  db:
-    image: mysql:8.0
-    container_name: profile-db
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: rootpass
-      MYSQL_DATABASE: misc
-      MYSQL_USER: miscuser
-      MYSQL_PASSWORD: miscpass
-    volumes:
-      - db_data:/var/lib/mysql
-      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
-
-  # One-shot initializer: waits for the DB to accept connections and then
-  # imports schema.sql into the configured database. This runs after the
-  # `db` service starts and is safe to leave; it will succeed or no-op if
-  # the tables already exist.
-  db-init:
-    image: mysql:8.0
-    depends_on:
-      - db
-    restart: "no"
-    environment:
-      MYSQL_ROOT_PASSWORD: rootpass
-      MYSQL_DATABASE: misc
-      MYSQL_USER: miscuser
-      MYSQL_PASSWORD: miscpass
-    volumes:
-      - ./schema.sql:/schema.sql:ro
-    entrypoint: ["/bin/sh", "-c"]
-    command: |
-      "until mysql -h db -umiscuser -pmiscpass -e 'SELECT 1' >/dev/null 2>&1; do sleep 1; done; \
-      mysql -h db -umiscuser -pmiscpass misc < /schema.sql || true"
-
-volumes:
-  db_data:
