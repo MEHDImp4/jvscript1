@@ -11,7 +11,7 @@ $profiles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Mehdi - Profile Database</title>
+    <title>Mehdi - Profile Database 57b47596</title>
 </head>
 <body>
     <h1>Profile Database</h1>
