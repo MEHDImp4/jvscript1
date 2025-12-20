@@ -43,6 +43,23 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
+      - name: Extract metadata for DB image
+        id: meta-db
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-db
+          tags: |
+            type=raw,value=latest
+
+      - name: Build and push DB image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile.db
+          push: true
+          tags: ${{ steps.meta-db.outputs.tags }}
+          labels: ${{ steps.meta-db.outputs.labels }}
+
       - name: Trigger Portainer Webhook
         run: |
           curl -X POST "https://portainer-mehdidiouri-java.smp4.xyz/api/stacks/webhooks/4ce34396-9773-4b39-9c38-83c6acb49f99"
