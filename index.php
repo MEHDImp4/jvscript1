@@ -1,8 +1,17 @@
 <?php
 require_once 'bootstrap.php';
 
-$stmt = $pdo->query('SELECT profile_id, user_id, first_name, last_name, headline FROM Profile ORDER BY last_name, first_name');
-$profiles = $stmt->fetchAll(PDO::FETCH_ASSOC);
+try {
+    $stmt = $pdo->query('SELECT profile_id, user_id, first_name, last_name, headline FROM Profile ORDER BY last_name, first_name');
+    $profiles = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    if ($e->getCode() === '42S02') {
+        setFlash('error', 'Database schema missing: please initialize the DB with schema.sql to create the Profile table.');
+        $profiles = [];
+    } else {
+        throw $e;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
