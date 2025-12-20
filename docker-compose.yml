@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  app:
+    # REPLACE 'YOUR_GITHUB_USERNAME/jvscript1' with your actual username and repo name in lowercase
+    image: ghcr.io/mehdimp4/jvscript1:latest
+    ports:
+      - "8080:80"
+    environment:
+      - DB_HOST=db
+      - DB_NAME=misc
+      - DB_USER=fred
+      - DB_PASS=zap
+    depends_on:
+      - db
+    restart: always
+
+  db:
+    image: mysql:5.7
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_zap
+      - MYSQL_DATABASE=misc
+      - MYSQL_USER=fred
+      - MYSQL_PASSWORD=zap
+    volumes:
+      - db_data:/var/lib/mysql
+      # Initialize database if needed (optional, assuming schema.sql is handled or mapped)
+      # - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    restart: always
+
+  watchtower:
+    image: containrrr/watchtower
+    command: --interval 30
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: always
+
+volumes:
+  db_data:
