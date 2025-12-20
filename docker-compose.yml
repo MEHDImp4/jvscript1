@@ -23,7 +23,7 @@ services:
       - MYSQL_USER=fred
       - MYSQL_PASSWORD=zap
     volumes:
-      - db_data_v2:/var/lib/mysql
+      - db_data_v3:/var/lib/mysql
       # Initialize database if needed
       - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
     restart: always
