@@ -38,4 +38,4 @@ services:
     restart: always
 
 volumes:
-  db_data:
+  db_data_v2:
