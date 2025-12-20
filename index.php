@@ -1,8 +1,13 @@
+
+
+
 <?php
 require_once 'bootstrap.php';
 
-$stmt = $pdo->query('SELECT profile_id, user_id, first_name, last_name, headline FROM Profile ORDER BY last_name, first_name');
-$profiles = $stmt->fetchAll(PDO::FETCH_ASSOC);
+// Ensure session is started
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -20,7 +25,15 @@ $profiles = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <p><a href="logout.php">Logout</a></p>
     <?php endif; ?>
 
-    <?php if (count($profiles) > 0): ?>
+    <?php
+    $profiles = [];
+    if (isset($_SESSION['user_id'])) {
+        $stmt = $pdo->query('SELECT profile_id, user_id, first_name, last_name, headline FROM Profile ORDER BY last_name, first_name');
+        $profiles = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    ?>
+
+    <?php if (isset($_SESSION['user_id']) && count($profiles) > 0): ?>
         <table border="1">
             <tr>
                 <th>Name</th>
