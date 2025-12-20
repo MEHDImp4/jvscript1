@@ -24,8 +24,8 @@ services:
       - MYSQL_PASSWORD=zap
     volumes:
       - db_data:/var/lib/mysql
-      # Initialize database if needed (optional, assuming schema.sql is handled or mapped)
-      # - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      # Initialize database if needed
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
     restart: always
 
   watchtower:

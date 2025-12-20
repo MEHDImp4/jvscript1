@@ -81,7 +81,7 @@ if (
 <html>
 
 <head>
-    <title>Mehdi - Add Profile</title>
+    <title>Mehdi 57b47596 - Add Profile</title>
     <?php require_once "head.php"; ?>
 </head>
 

@@ -36,7 +36,7 @@ if ($row === false) {
 <html>
 
 <head>
-    <title>Mehdi - Delete Profile</title>
+    <title>Mehdi 57b47596 - Delete Profile</title>
     <?php require_once "head.php"; ?>
 </head>
 

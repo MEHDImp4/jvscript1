@@ -39,7 +39,7 @@ if (isset($_POST['email']) && isset($_POST['pass'])) {
 <html>
 
 <head>
-    <title>Mehdi - Login Page</title>
+    <title>Mehdi 57b47596 - Login Page</title>
     <?php require_once "head.php"; ?>
 </head>
 

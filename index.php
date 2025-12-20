@@ -7,7 +7,7 @@ require_once "util.php";
 <html>
 
 <head>
-    <title>Diouri Mehdi - Resume Registry</title>
+    <title>Diouri Mehdi 57b47596 - Resume Registry</title>
     <?php require_once "head.php"; ?>
 </head>
 

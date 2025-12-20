@@ -107,7 +107,7 @@ $positions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <html>
 
 <head>
-    <title>Mehdi - Edit Profile</title>
+    <title>Mehdi 57b47596 - Edit Profile</title>
     <?php require_once "head.php"; ?>
 </head>
 

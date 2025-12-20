@@ -28,7 +28,7 @@ $positions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <html>
 
 <head>
-    <title>Mehdi - View Profile</title>
+    <title>Mehdi 57b47596 - View Profile</title>
     <?php require_once "head.php"; ?>
 </head>
 
