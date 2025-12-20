@@ -3,6 +3,7 @@ USE misc;
 
 GRANT ALL ON misc.* TO 'fred'@'localhost' IDENTIFIED BY 'zap';
 GRANT ALL ON misc.* TO 'fred'@'127.0.0.1' IDENTIFIED BY 'zap';
+GRANT ALL ON misc.* TO 'fred'@'%' IDENTIFIED BY 'zap';
 
 CREATE TABLE IF NOT EXISTS users (
    user_id INTEGER NOT NULL AUTO_INCREMENT,
