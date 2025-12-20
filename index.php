@@ -1,6 +1,3 @@
-
-
-
 <?php
 require_once 'bootstrap.php';
 
@@ -65,8 +62,12 @@ $profiles = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <p>No rows found</p>
     <?php endif; ?>
 
-    <?php if (isset($_SESSION['user_id'])): ?>
-        <p><a href="add.php">Add New Entry</a></p>
-    <?php endif; ?>
+    <p>
+        <?php if (isset($_SESSION['user_id'])): ?>
+            <a href="add.php">Add New Entry</a>
+        <?php else: ?>
+            <span style="color:gray;">Add New Entry (login required)</span>
+        <?php endif; ?>
+    </p>
 </body>
 </html>
