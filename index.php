@@ -17,7 +17,7 @@ if ($flash) {
     <?php if (isSignedIn()): ?>
         Welcome, <?php echo htmlEscape($_SESSION['name']); ?> |
         <a href="logout.php">Logout</a> |
-        <a href="add.php">Add New Profile</a>
+        <a href="add.php">Add New Entry</a>
     <?php else: ?>
         <a href="login.php">Please log in</a>
     <?php endif; ?>
