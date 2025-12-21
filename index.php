@@ -19,7 +19,7 @@ if ($flash) {
         <a href="logout.php">Logout</a> |
         <a href="add.php">Add New Profile</a>
     <?php else: ?>
-        <a href="login.php">Login</a>
+        <a href="login.php">Please log in</a>
     <?php endif; ?>
 </p>
 
