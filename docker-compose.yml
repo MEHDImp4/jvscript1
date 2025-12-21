@@ -22,6 +22,12 @@ services:
     command: --default-authentication-plugin=mysql_native_password
     networks:
       - wa4e-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-ufred", "-pzap"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
 
   # PHP Application (from GHCR)
   web:
@@ -31,7 +37,8 @@ services:
     ports:
       - "8080:80"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       - DB_HOST=db
       - DB_NAME=misc
