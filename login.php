@@ -51,7 +51,7 @@ if ($flash) {
         <label for="password">Password:</label>
         <input type="password" name="password" id="password" class="form-control" />
     </div>
-    <button type="submit" class="btn btn-primary">Login</button>
+    <input type="submit" value="Log In" class="btn btn-primary" />
     <a href="index.php" class="btn btn-default">Cancel</a>
 </form>
 
