@@ -6,7 +6,7 @@ require_once 'util.php';
 // Handle POST - login attempt
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $_POST['email'] ?? '';
-    $password = $_POST['password'] ?? '';
+    $password = $_POST['pass'] ?? '';
 
     if (strlen($email) === 0 || strlen($password) === 0) {
         setFlash('Email and password are required');
@@ -49,7 +49,7 @@ if ($flash) {
     </div>
     <div class="form-group">
         <label for="password">Password:</label>
-        <input type="password" name="password" id="password" class="form-control" />
+        <input type="password" name="pass" id="password" class="form-control" />
     </div>
     <input type="submit" value="Log In" class="btn btn-primary" />
     <a href="index.php" class="btn btn-default">Cancel</a>
