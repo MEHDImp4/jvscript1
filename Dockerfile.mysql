@@ -1,0 +1,7 @@
+FROM mysql:8.0
+
+# Copy schema into init directory
+COPY schema.sql /docker-entrypoint-initdb.d/
+
+# Use native password auth
+CMD ["--default-authentication-plugin=mysql_native_password"]

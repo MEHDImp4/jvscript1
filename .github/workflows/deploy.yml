@@ -7,7 +7,6 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build-and-push:
@@ -31,27 +30,30 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels)
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=sha,prefix=
-
-      - name: Convert image name to lowercase
+      - name: Convert repo name to lowercase
         id: lowercase
-        run: echo "image_name=$(echo '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+        run: echo "repo=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
 
-      - name: Build and push Docker image
+      - name: Build and push PHP image
         uses: docker/build-push-action@v5
         with:
           context: .
+          file: Dockerfile
           push: true
           tags: |
-            ${{ steps.lowercase.outputs.image_name }}:latest
-            ${{ steps.lowercase.outputs.image_name }}:${{ github.sha }}
-          labels: ${{ steps.meta.outputs.labels }}
+            ${{ env.REGISTRY }}/${{ steps.lowercase.outputs.repo }}:latest
+            ${{ env.REGISTRY }}/${{ steps.lowercase.outputs.repo }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push MySQL image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile.mysql
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ steps.lowercase.outputs.repo }}-db:latest
+            ${{ env.REGISTRY }}/${{ steps.lowercase.outputs.repo }}-db:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

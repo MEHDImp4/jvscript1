@@ -1,12 +1,12 @@
-# Production Docker Compose with GHCR image and Watchtower auto-update
+# Production Docker Compose with GHCR images and Watchtower auto-update
 # Usage: docker-compose up -d
 
 version: '3.8'
 
 services:
-  # MySQL Database
+  # MySQL Database (from GHCR with schema bundled)
   db:
-    image: mysql:8.0
+    image: ghcr.io/mehdimp4/jvscript1-db:latest
     container_name: wa4e-mysql
     restart: always
     environment:
@@ -18,8 +18,6 @@ services:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
-    command: --default-authentication-plugin=mysql_native_password
     networks:
       - wa4e-network
 
