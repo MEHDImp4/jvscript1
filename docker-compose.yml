@@ -25,7 +25,7 @@ services:
 
   # PHP Application (from GHCR)
   web:
-    image: ghcr.io/mehdimp/jvscript1:latest
+    image: ghcr.io/mehdimp4/jvscript1:latest
     container_name: wa4e-php
     restart: always
     ports:
