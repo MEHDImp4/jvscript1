@@ -1,0 +1,65 @@
+# Production Docker Compose with GHCR image and Watchtower auto-update
+# Usage: docker-compose up -d
+
+version: '3.8'
+
+services:
+  # MySQL Database
+  db:
+    image: mysql:8.0
+    container_name: wa4e-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: misc
+      MYSQL_USER: fred
+      MYSQL_PASSWORD: zap
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    command: --default-authentication-plugin=mysql_native_password
+    networks:
+      - wa4e-network
+
+  # PHP Application (from GHCR)
+  web:
+    image: ghcr.io/mehdimp/jvscript1:latest
+    container_name: wa4e-php
+    restart: always
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_NAME=misc
+      - DB_USER=fred
+      - DB_PASS=zap
+    networks:
+      - wa4e-network
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  # Watchtower - Auto-update containers when new images are pushed
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - DOCKER_API_VERSION=1.44
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_INCLUDE_RESTARTING=true
+    command: --interval 30
+    networks:
+      - wa4e-network
+
+networks:
+  wa4e-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
