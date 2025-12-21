@@ -23,11 +23,11 @@ services:
     networks:
       - wa4e-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-ufred", "-pzap"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-      start_period: 30s
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -prootpass || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
 
   # PHP Application (from GHCR)
   web:
