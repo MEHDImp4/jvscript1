@@ -1,64 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Md Mehdi Hasan - Login</title>
+<?php require_once "pdo.php"; ?>
+</head>
+<body>
+<h1>Please Log In</h1>
 <?php
-// Login page
-require_once 'pdo.php';
-require_once 'util.php';
-
-// Handle POST - login attempt
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = $_POST['email'] ?? '';
-    $password = $_POST['pass'] ?? '';
-
-    if (strlen($email) === 0 || strlen($password) === 0) {
-        setFlash('Email and password are required');
-        header('Location: login.php');
-        exit();
-    }
-
-    // MD5 hash the password (as per assignment spec)
-    $passwordHash = md5($password);
-
-    $stmt = $pdo->prepare('SELECT user_id, name FROM users WHERE email = :email AND password = :password');
-    $stmt->execute([':email' => $email, ':password' => $passwordHash]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($user) {
-        $_SESSION['user_id'] = $user['user_id'];
-        $_SESSION['name'] = $user['name'];
-        setFlash('Welcome ' . $user['name']);
-        header('Location: index.php');
-        exit();
-    } else {
-        setFlash('Invalid email or password');
-        header('Location: login.php');
-        exit();
-    }
+if ( isset($_POST['cancel']) ) {
+    header("Location: index.php");
+    return;
 }
 
-echo getHeader('Login');
-$flash = getFlash();
-if ($flash) {
-    echo '<p class="flash-error">' . htmlEscape($flash) . '</p>';
+$salt = 'XyZzy12*_';
+$stored_hash = '1a52e17fa899cf40fb04cfc42e6352f1'; // php password for 'php123'
+
+if ( isset($_POST['email']) && isset($_POST['pass']) ) {
+    unset($_SESSION['user_id']);
+    if ( strlen($_POST['email']) < 1 || strlen($_POST['pass']) < 1 ) {
+        $_SESSION['error'] = "Email and password are required";
+        header("Location: login.php");
+        return;
+    } else {
+        $check = hash('md5', $salt.$_POST['pass']);
+        if ( $check == $stored_hash ) {
+            // Check if email matches
+            $stmt = $pdo->prepare('SELECT user_id FROM users WHERE email = :em');
+            $stmt->execute(array(':em' => $_POST['email']));
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($row !== false) {
+                $_SESSION['user_id'] = $row['user_id'];
+                $_SESSION['name'] = $row['name'];
+                header("Location: index.php");
+                return;
+            } else {
+                $_SESSION['error'] = "Incorrect email";
+                header("Location: login.php");
+                return;
+            }
+        } else {
+            $_SESSION['error'] = "Incorrect password";
+            header("Location: login.php");
+            return;
+        }
+    }
 }
 ?>
-
-<h1>Login</h1>
+<p>
 <form method="post">
-    <div class="form-group">
-        <label for="email">Email:</label>
-        <input type="text" name="email" id="email" class="form-control" />
-    </div>
-    <div class="form-group">
-        <label for="password">Password:</label>
-        <input type="password" name="pass" id="password" class="form-control" />
-    </div>
-    <input type="submit" value="Log In" class="btn btn-primary" />
-    <a href="index.php" class="btn btn-default">Cancel</a>
+<label for="email">Email</label>
+<input type="text" name="email" id="email"><br/>
+<label for="pass">Password</label>
+<input type="password" name="pass" id="pass"><br/>
+<input type="submit" value="Log In">
+<input type="submit" name="cancel" value="Cancel">
 </form>
-
-<p style="margin-top: 20px;">
-    <strong>Test accounts:</strong><br>
-    Email: csev@umich.edu, Password: php123<br>
-    Email: umsi@umich.edu, Password: php123
+<p>
+For a password hint, view source and find a password hint
+in the HTML comments.
+<!-- Hint: The password is the four character name of the
+programming language used in this class (all lower case)
+followed by 123. -->
 </p>
-
-<?php echo getFooter(); ?>
+</body>
+</html>

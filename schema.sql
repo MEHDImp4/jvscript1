@@ -1,84 +1,57 @@
--- WA4E Resume Application Database Schema
--- Users, Profile, Position, Institution, Education
+-- Create the SQLite database and tables for the resume application
 
--- Users table for authentication
 CREATE TABLE IF NOT EXISTS users (
-    user_id INTEGER NOT NULL AUTO_INCREMENT,
+    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(128),
-    email VARCHAR(128),
-    password VARCHAR(128),
-    PRIMARY KEY(user_id),
-    INDEX(email),
-    INDEX(password)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+    email VARCHAR(128) UNIQUE,
+    password VARCHAR(255)
+);
 
--- Profile table - linked to users
 CREATE TABLE IF NOT EXISTS Profile (
-    profile_id INTEGER NOT NULL AUTO_INCREMENT,
+    profile_id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER,
-    first_name VARCHAR(128),
-    last_name VARCHAR(128),
-    email VARCHAR(128),
-    headline VARCHAR(256),
+    first_name TEXT,
+    last_name TEXT,
+    email TEXT,
+    headline TEXT,
     summary TEXT,
-    PRIMARY KEY(profile_id),
-    CONSTRAINT profile_ibfk_1
-        FOREIGN KEY (user_id)
-        REFERENCES users (user_id)
-        ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
+);
 
--- Position table - many-to-one with Profile
 CREATE TABLE IF NOT EXISTS Position (
-    position_id INTEGER NOT NULL AUTO_INCREMENT,
+    position_id INTEGER PRIMARY KEY AUTOINCREMENT,
     profile_id INTEGER,
     rank INTEGER,
     year INTEGER,
     description TEXT,
-    PRIMARY KEY(position_id),
-    CONSTRAINT position_ibfk_1
-        FOREIGN KEY (profile_id)
-        REFERENCES Profile (profile_id)
-        ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+    FOREIGN KEY (profile_id) REFERENCES Profile (profile_id) ON DELETE CASCADE
+);
 
--- Institution table for Education autocomplete
 CREATE TABLE IF NOT EXISTS Institution (
-    institution_id INTEGER NOT NULL AUTO_INCREMENT,
-    name VARCHAR(255),
-    PRIMARY KEY(institution_id),
-    UNIQUE(name)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+    institution_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(255) UNIQUE
+);
 
--- Education table - many-to-many between Profile and Institution
 CREATE TABLE IF NOT EXISTS Education (
     profile_id INTEGER,
     institution_id INTEGER,
     rank INTEGER,
     year INTEGER,
-    CONSTRAINT education_ibfk_1
-        FOREIGN KEY (profile_id)
-        REFERENCES Profile (profile_id)
-        ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT education_ibfk_2
-        FOREIGN KEY (institution_id)
-        REFERENCES Institution (institution_id)
-        ON DELETE CASCADE ON UPDATE CASCADE,
-    PRIMARY KEY(profile_id, institution_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+    PRIMARY KEY(profile_id, institution_id),
+    FOREIGN KEY (profile_id) REFERENCES Profile (profile_id) ON DELETE CASCADE,
+    FOREIGN KEY (institution_id) REFERENCES Institution (institution_id) ON DELETE CASCADE
+);
 
--- Seed data: Test users (password is MD5 of 'php123')
-INSERT INTO users (name, email, password) VALUES 
-('Chuck', 'csev@umich.edu', '218140990315bb39d948a523d61549b4'),
-('UMSI', 'umsi@umich.edu', '218140990315bb39d948a523d61549b4');
+-- Insert initial institutions
+INSERT OR IGNORE INTO Institution (name) VALUES ('University of Michigan');
+INSERT OR IGNORE INTO Institution (name) VALUES ('University of Virginia');
+INSERT OR IGNORE INTO Institution (name) VALUES ('University of Oxford');
+INSERT OR IGNORE INTO Institution (name) VALUES ('University of Cambridge');
+INSERT OR IGNORE INTO Institution (name) VALUES ('Stanford University');
+INSERT OR IGNORE INTO Institution (name) VALUES ('Duke University');
+INSERT OR IGNORE INTO Institution (name) VALUES ('Michigan State University');
+INSERT OR IGNORE INTO Institution (name) VALUES ('Mississippi State University');
+INSERT OR IGNORE INTO Institution (name) VALUES ('Montana State University');
 
--- Seed data: Pre-inserted institutions
-INSERT INTO Institution (name) VALUES ('University of Michigan');
-INSERT INTO Institution (name) VALUES ('University of Virginia');
-INSERT INTO Institution (name) VALUES ('University of Oxford');
-INSERT INTO Institution (name) VALUES ('University of Cambridge');
-INSERT INTO Institution (name) VALUES ('Stanford University');
-INSERT INTO Institution (name) VALUES ('Duke University');
-INSERT INTO Institution (name) VALUES ('Michigan State University');
-INSERT INTO Institution (name) VALUES ('Mississippi State University');
-INSERT INTO Institution (name) VALUES ('Montana State University');
+-- Insert a sample user
+INSERT OR IGNORE INTO users (name, email, password) VALUES ('Test User', 'test@example.com', '1a52e17fa899cf40fb04cfc42e6352f1');

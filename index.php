@@ -1,60 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Md Mehdi Hasan - Profiles</title>
+<?php require_once "pdo.php"; ?>
+<?php require_once "util.php"; ?>
+</head>
+<body>
+<div class="container">
+<h1>Md Mehdi Diouri's Resume Registry - 57b47596</h1>
 <?php
-// Index page - list all profiles
-require_once 'pdo.php';
-require_once 'util.php';
-
-echo getHeader('Profiles');
-
-$flash = getFlash();
-if ($flash) {
-    echo '<p class="flash-success">' . htmlEscape($flash) . '</p>';
+if ( isset($_SESSION['error']) ) {
+    echo '<p style="color:red">'.$_SESSION['error']."</p>\n";
+    unset($_SESSION['error']);
+}
+if ( isset($_SESSION['success']) ) {
+    echo '<p style="color:green">'.$_SESSION['success']."</p>\n";
+    unset($_SESSION['success']);
 }
 ?>
-
-<h1>Resume Registry</h1>
-
 <p>
-    <?php if (isSignedIn()): ?>
-        Welcome, <?php echo htmlEscape($_SESSION['name']); ?> |
-        <a href="logout.php">Logout</a> |
-        <a href="add.php">Add New Entry</a>
-    <?php else: ?>
-        <a href="login.php">Please log in</a>
-    <?php endif; ?>
+<?php
+if (!isset($_SESSION['user_id'])) {
+    echo '<a href="login.php">Please log in</a>';
+} else {
+    echo '<a href="logout.php">Logout</a>';
+}
+?>
 </p>
-
-<h2>Profiles</h2>
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Headline</th>
-            <?php if (isSignedIn()): ?>
-                <th>Actions</th>
-            <?php endif; ?>
-        </tr>
-    </thead>
-    <tbody>
-        <?php
-        $stmt = $pdo->query('SELECT profile_id, user_id, first_name, last_name, headline FROM Profile ORDER BY last_name, first_name');
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            echo '<tr>';
-            echo '<td><a href="view.php?profile_id=' . $row['profile_id'] . '">' .
-                htmlEscape($row['first_name'] . ' ' . $row['last_name']) . '</a></td>';
-            echo '<td>' . htmlEscape($row['headline']) . '</td>';
-
-            if (isSignedIn()) {
-                echo '<td>';
-                if ($_SESSION['user_id'] == $row['user_id']) {
-                    echo '<a href="edit.php?profile_id=' . $row['profile_id'] . '">Edit</a> | ';
-                    echo '<a href="delete.php?profile_id=' . $row['profile_id'] . '">Delete</a>';
-                }
-                echo '</td>';
-            }
-            echo '</tr>';
+<?php
+$stmt = $pdo->query("SELECT profile_id, first_name, last_name, headline FROM Profile ORDER BY first_name");
+$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+if (count($rows) > 0) {
+    echo '<table border="1">';
+    echo '<tr><th>Name</th><th>Headline</th>';
+    if (isset($_SESSION['user_id'])) {
+        echo '<th>Action</th>';
+    }
+    echo '</tr>';
+    foreach ($rows as $row) {
+        echo '<tr>';
+        echo '<td><a href="view.php?profile_id='.htmlentities($row['profile_id']).'">'.htmlentities($row['first_name']).' '.htmlentities($row['last_name']).'</a></td>';
+        echo '<td>'.htmlentities($row['headline']).'</td>';
+        if (isset($_SESSION['user_id'])) {
+            echo '<td><a href="edit.php?profile_id='.htmlentities($row['profile_id']).'">Edit</a> <a href="delete.php?profile_id='.htmlentities($row['profile_id']).'">Delete</a></td>';
         }
-        ?>
-    </tbody>
-</table>
-
-<?php echo getFooter(); ?>
+        echo '</tr>';
+    }
+    echo '</table>';
+} else {
+    echo '<p>No profiles found</p>';
+}
+if (isset($_SESSION['user_id'])) {
+    echo '<p><a href="add.php">Add New Entry</a></p>';
+}
+?>
+</div>
+</body>
+</html>

@@ -1,55 +1,48 @@
 <?php
-// Delete a profile
-require_once 'pdo.php';
-require_once 'util.php';
-
-// Must be logged in
-checkSignedIn();
-
-// Get profile ID
-$profile_id = $_REQUEST['profile_id'] ?? 0;
-if ($profile_id < 1) {
-    die("Invalid profile ID");
+if ( ! isset($_SESSION['user_id']) ) {
+    die('ACCESS DENIED');
 }
-
-// Fetch profile and verify ownership
-$stmt = $pdo->prepare('SELECT * FROM Profile WHERE profile_id = :pid');
-$stmt->execute([':pid' => $profile_id]);
-$profile = $stmt->fetch(PDO::FETCH_ASSOC);
-
-if (!$profile) {
-    die("Profile not found");
+if ( isset($_POST['cancel']) ) {
+    header("Location: index.php");
+    return;
 }
-
-if ($profile['user_id'] != $_SESSION['user_id']) {
-    die("ACCESS DENIED");
+if ( ! isset($_GET['profile_id']) ) {
+    $_SESSION['error'] = "Missing profile_id";
+    header("Location: index.php");
+    return;
 }
-
-// Handle POST - confirm delete
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Delete profile (positions and education cascade)
-    $stmt = $pdo->prepare('DELETE FROM Profile WHERE profile_id = :pid');
-    $stmt->execute([':pid' => $profile_id]);
-
-    setFlash('Profile deleted successfully');
-    header('Location: index.php');
-    exit();
+$stmt = $pdo->prepare("SELECT first_name, last_name FROM Profile WHERE profile_id = :xyz AND user_id = :uid");
+$stmt->execute(array(":xyz" => $_GET['profile_id'], ":uid" => $_SESSION['user_id']));
+$row = $stmt->fetch(PDO::FETCH_ASSOC);
+if ( $row === false ) {
+    $_SESSION['error'] = "Bad value for profile_id";
+    header("Location: index.php");
+    return;
 }
-
-echo getHeader('Delete Profile');
+if ( isset($_POST['delete']) ) {
+    $stmt = $pdo->prepare("DELETE FROM Profile WHERE profile_id = :xyz AND user_id = :uid");
+    $stmt->execute(array(":xyz" => $_GET['profile_id'], ":uid" => $_SESSION['user_id']));
+    $_SESSION['success'] = "Profile deleted";
+    header("Location: index.php");
+    return;
+}
 ?>
-
+<!DOCTYPE html>
+<html>
+<head>
+<title>Md Mehdi Hasan - Delete Profile</title>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+</head>
+<body>
+<div class="container">
 <h1>Delete Profile</h1>
-
-<div class="alert alert-danger">
-    <p>Are you sure you want to delete this profile?</p>
-    <p><strong><?php echo htmlEscape($profile['first_name'] . ' ' . $profile['last_name']); ?></strong></p>
-</div>
-
+<p>First Name: <?php echo htmlentities($row['first_name']); ?></p>
+<p>Last Name: <?php echo htmlentities($row['last_name']); ?></p>
 <form method="post">
-    <input type="hidden" name="profile_id" value="<?php echo $profile_id; ?>" />
-    <button type="submit" class="btn btn-danger">Confirm Delete</button>
-    <a href="view.php?profile_id=<?php echo $profile_id; ?>" class="btn btn-default">Cancel</a>
+<input type="hidden" name="profile_id" value="<?php echo $_GET['profile_id']; ?>">
+<input type="submit" value="Delete" name="delete">
+<input type="submit" value="Cancel" name="cancel">
 </form>
-
-<?php echo getFooter(); ?>
+</div>
+</body>
+</html>

@@ -1,163 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Md Mehdi Hasan - Add Profile</title>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/ui-lightness/jquery-ui.css">
+<script src="https://code.jquery.com/jquery-3.2.1.js" integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE=" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js" integrity="sha256-T0Vest3yCU7pafRw9r+settMBX6JkKN06dqBnpQ8d30=" crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="container">
+<h1>Adding Profile for Md Mehdi Hasan</h1>
 <?php
-// Add a new profile with positions and education
-require_once 'pdo.php';
-require_once 'util.php';
-
-// Must be logged in
-checkSignedIn();
-
-// Handle POST
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Validate all fields
-    $profileValid = validateProfile($_POST);
-    if ($profileValid !== true) {
-        setFlash($profileValid);
-        header('Location: add.php');
-        exit();
+if ( ! isset($_SESSION['user_id']) ) {
+    die('ACCESS DENIED');
+}
+if ( isset($_POST['cancel']) ) {
+    header("Location: index.php");
+    return;
+}
+if ( isset($_POST['first_name']) && isset($_POST['last_name']) && isset($_POST['email']) && isset($_POST['headline']) && isset($_POST['summary']) ) {
+    $msg = validateProfile();
+    if ( is_string($msg) ) {
+        $_SESSION['error'] = $msg;
+        header("Location: add.php");
+        return;
     }
-
-    $posValid = validatePositions($_POST);
-    if ($posValid !== true) {
-        setFlash($posValid);
-        header('Location: add.php');
-        exit();
+    $msg = validatePos();
+    if ( is_string($msg) ) {
+        $_SESSION['error'] = $msg;
+        header("Location: add.php");
+        return;
     }
-
-    $eduValid = validateEducation($_POST);
-    if ($eduValid !== true) {
-        setFlash($eduValid);
-        header('Location: add.php');
-        exit();
+    $msg = validateEdu();
+    if ( is_string($msg) ) {
+        $_SESSION['error'] = $msg;
+        header("Location: add.php");
+        return;
     }
-
-    // Insert profile
-    $stmt = $pdo->prepare('INSERT INTO Profile (user_id, first_name, last_name, email, headline, summary) 
-                           VALUES (:uid, :fn, :ln, :em, :he, :su)');
-    $stmt->execute([
+    $stmt = $pdo->prepare('INSERT INTO Profile (user_id, first_name, last_name, email, headline, summary) VALUES ( :uid, :fn, :ln, :em, :he, :su)');
+    $stmt->execute(array(
         ':uid' => $_SESSION['user_id'],
         ':fn' => $_POST['first_name'],
         ':ln' => $_POST['last_name'],
         ':em' => $_POST['email'],
         ':he' => $_POST['headline'],
-        ':su' => $_POST['summary']
-    ]);
+        ':su' => $_POST['summary'])
+    );
     $profile_id = $pdo->lastInsertId();
-
-    // Insert positions
-    insertPositions($pdo, $profile_id, $_POST);
-
-    // Insert education
-    insertEducation($pdo, $profile_id, $_POST);
-
-    setFlash('Profile added successfully');
-    header('Location: view.php?profile_id=' . $profile_id);
-    exit();
-}
-
-echo getHeader('Add Profile');
-
-$flash = getFlash();
-if ($flash) {
-    echo '<p class="flash-error">' . htmlEscape($flash) . '</p>';
+    insertPositions($pdo, $profile_id);
+    insertEducations($pdo, $profile_id);
+    $_SESSION['success'] = "Profile added";
+    header("Location: index.php");
+    return;
 }
 ?>
-
-<h1>Add Profile</h1>
-
+<?php
+if ( isset($_SESSION['error']) ) {
+    echo '<p style="color:red">'.$_SESSION['error']."</p>\n";
+    unset($_SESSION['error']);
+}
+?>
 <form method="post">
-    <h3>Profile Information</h3>
-    <div class="form-group">
-        <label for="first_name">First Name:</label>
-        <input type="text" name="first_name" id="first_name" class="form-control" />
-    </div>
-    <div class="form-group">
-        <label for="last_name">Last Name:</label>
-        <input type="text" name="last_name" id="last_name" class="form-control" />
-    </div>
-    <div class="form-group">
-        <label for="email">Email:</label>
-        <input type="text" name="email" id="email" class="form-control" />
-    </div>
-    <div class="form-group">
-        <label for="headline">Headline:</label>
-        <input type="text" name="headline" id="headline" class="form-control" />
-    </div>
-    <div class="form-group">
-        <label for="summary">Summary:</label>
-        <textarea name="summary" id="summary" rows="4" class="form-control"></textarea>
-    </div>
-
-    <hr>
-    <h3>Positions <button type="button" id="addPos" class="btn btn-success btn-sm">+ Add Position</button></h3>
-    <div id="positions">
-        <div id="position1">
-            <p>Year: <input type="text" name="year1" size="10" value="" />
-                <input type="button" value="-" onclick="$('#position1').remove();return false;" />
-            </p>
-            <textarea name="desc1" rows="4" cols="60" class="form-control" placeholder="Description"></textarea>
-        </div>
-    </div>
-
-    <hr>
-    <h3>Education <button type="button" id="addEdu" class="btn btn-success btn-sm">+ Add Education</button></h3>
-    <div id="educations">
-        <div id="education1">
-            <p>Year: <input type="text" name="edu_year1" size="10" value="" />
-                School: <input type="text" name="edu_school1" size="50" class="school" value="" />
-                <input type="button" value="-" onclick="$('#education1').remove();return false;" />
-            </p>
-        </div>
-    </div>
-
-    <hr>
-    <button type="submit" class="btn btn-primary">Save</button>
-    <a href="index.php" class="btn btn-default">Cancel</a>
+<p>First Name:
+<input type="text" name="first_name" size="60"/></p>
+<p>Last Name:
+<input type="text" name="last_name" size="60"/></p>
+<p>Email:
+<input type="text" name="email" size="30"/></p>
+<p>Headline:<br/>
+<input type="text" name="headline" size="80"/></p>
+<p>Summary:<br/>
+<textarea name="summary" rows="8" cols="80"></textarea></p>
+<p>
+Position: <input type="submit" id="addPos" value="+">
+<div id="position_fields">
+</div>
+</p>
+<p>
+Education: <input type="submit" id="addEdu" value="+">
+<div id="edu_fields">
+</div>
+</p>
+<p>
+<input type="submit" value="Add">
+<input type="submit" name="cancel" value="Cancel">
+</p>
 </form>
-
 <script>
-    var countPos = 1;
-    var countEdu = 1;
-
-    $(document).ready(function () {
-        // Add Position
-        $('#addPos').click(function (e) {
-            e.preventDefault();
-            if (countPos >= 9) {
-                alert("Maximum 9 positions allowed");
-                return;
-            }
-            countPos++;
-            $('#positions').append(
-                '<div id="position' + countPos + '" style="margin-top:10px;">' +
-                '<p>Year: <input type="text" name="year' + countPos + '" size="10" value="" /> ' +
-                '<input type="button" value="-" onclick="$(\'#position' + countPos + '\').remove();return false;" /></p>' +
-                '<textarea name="desc' + countPos + '" rows="4" cols="60" class="form-control" placeholder="Description"></textarea>' +
-                '</div>'
-            );
-        });
-
-        // Add Education
-        $('#addEdu').click(function (e) {
-            e.preventDefault();
-            if (countEdu >= 9) {
-                alert("Maximum 9 education entries allowed");
-                return;
-            }
-            countEdu++;
-            $('#educations').append(
-                '<div id="education' + countEdu + '" style="margin-top:10px;">' +
-                '<p>Year: <input type="text" name="edu_year' + countEdu + '" size="10" value="" /> ' +
-                'School: <input type="text" name="edu_school' + countEdu + '" size="50" class="school" value="" /> ' +
-                '<input type="button" value="-" onclick="$(\'#education' + countEdu + '\').remove();return false;" /></p>' +
-                '</div>'
-            );
-            // Re-initialize autocomplete for new fields
-            $('.school').autocomplete({ source: "school.php" });
-        });
-
-        // Initialize autocomplete on school fields
-        $('.school').autocomplete({ source: "school.php" });
+countPos = 0;
+countEdu = 0;
+$(document).ready(function(){
+    window.console && console.log('Document ready called');
+    $('#addPos').click(function(event){
+        event.preventDefault();
+        if ( countPos >= 9 ) {
+            alert("Maximum of nine position entries exceeded");
+            return;
+        }
+        countPos++;
+        window.console && console.log("Adding position "+countPos);
+        $('#position_fields').append(
+            '<div id="position'+countPos+'"> \
+            <p>Year: <input type="text" name="year'+countPos+'" value="" /> \
+            <input type="button" value="-" onclick="$(\'#position'+countPos+'\').remove();return false;"></p> \
+            <textarea name="desc'+countPos+'" rows="8" cols="80"></textarea> \
+            </div>');
     });
+    $('#addEdu').click(function(event){
+        event.preventDefault();
+        if ( countEdu >= 9 ) {
+            alert("Maximum of nine education entries exceeded");
+            return;
+        }
+        countEdu++;
+        window.console && console.log("Adding education "+countEdu);
+        $('#edu_fields').append(
+            '<div id="edu'+countEdu+'"> \
+            <p>Year: <input type="text" name="edu_year'+countEdu+'" value="" /> \
+            <input type="button" value="-" onclick="$(\'#edu'+countEdu+'\').remove();return false;"></p> \
+            <p>School: <input type="text" name="edu_school'+countEdu+'" class="school" value="" /></p> \
+            </div>');
+        $('.school').autocomplete({
+            source: "school.php"
+        });
+    });
+});
 </script>
-
-<?php echo getFooter(); ?>
+</div>
+</body>
+</html>
