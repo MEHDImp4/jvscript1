@@ -1,48 +1,65 @@
 <?php
-if ( ! isset($_SESSION['user_id']) ) {
+ob_start();
+session_start();
+require_once "pdo.php";
+
+if (!isset($_SESSION['user_id'])) {
     die('ACCESS DENIED');
 }
-if ( isset($_POST['cancel']) ) {
-    header("Location: index.php");
-    return;
+
+if (isset($_POST['cancel'])) {
+    ob_end_clean();
+    header('Location: index.php', true, 303);
+    exit();
 }
-if ( ! isset($_GET['profile_id']) ) {
+
+if (!isset($_REQUEST['profile_id'])) {
     $_SESSION['error'] = "Missing profile_id";
-    header("Location: index.php");
-    return;
+    ob_end_clean();
+    header('Location: index.php', true, 303);
+    exit();
 }
-$stmt = $pdo->prepare("SELECT first_name, last_name FROM Profile WHERE profile_id = :xyz AND user_id = :uid");
-$stmt->execute(array(":xyz" => $_GET['profile_id'], ":uid" => $_SESSION['user_id']));
+
+$stmt = $pdo->prepare('SELECT first_name, last_name, profile_id FROM Profile WHERE profile_id = :prof AND user_id = :uid');
+$stmt->execute(array(':prof' => $_REQUEST['profile_id'], ':uid' => $_SESSION['user_id']));
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
-if ( $row === false ) {
-    $_SESSION['error'] = "Bad value for profile_id";
-    header("Location: index.php");
-    return;
+if ($row === false) {
+    $_SESSION['error'] = 'Could not load profile';
+    ob_end_clean();
+    header('Location: index.php', true, 303);
+    exit();
 }
-if ( isset($_POST['delete']) ) {
-    $stmt = $pdo->prepare("DELETE FROM Profile WHERE profile_id = :xyz AND user_id = :uid");
-    $stmt->execute(array(":xyz" => $_GET['profile_id'], ":uid" => $_SESSION['user_id']));
-    $_SESSION['success'] = "Profile deleted";
-    header("Location: index.php");
-    return;
+
+if (isset($_POST['delete']) && isset($_POST['profile_id'])) {
+    $sql = "DELETE FROM Profile WHERE profile_id = :zip";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(array(':zip' => $_POST['profile_id']));
+    $_SESSION['flash'] = 'Profile deleted';
+    ob_end_clean();
+    header('Location: index.php', true, 303);
+    exit();
 }
 ?>
 <!DOCTYPE html>
 <html>
+
 <head>
-<title>Md Mehdi Hasan - Delete Profile</title>
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <title>Mehdi 57b47596 - Delete Profile</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css">
 </head>
+
 <body>
-<div class="container">
-<h1>Delete Profile</h1>
-<p>First Name: <?php echo htmlentities($row['first_name']); ?></p>
-<p>Last Name: <?php echo htmlentities($row['last_name']); ?></p>
-<form method="post">
-<input type="hidden" name="profile_id" value="<?php echo $_GET['profile_id']; ?>">
-<input type="submit" value="Delete" name="delete">
-<input type="submit" value="Cancel" name="cancel">
-</form>
-</div>
+    <div class="container">
+        <h1>Deleteing Profile</h1>
+        <form method="post" action="delete.php">
+            <p>First Name: <?= htmlentities($row['first_name']) ?></p>
+            <p>Last Name: <?= htmlentities($row['last_name']) ?></p>
+            <input type="hidden" name="profile_id" value="<?= $row['profile_id'] ?>">
+            <input type="submit" value="Delete" name="delete">
+            <input type="submit" name="cancel" value="Cancel">
+        </form>
+    </div>
 </body>
+
 </html>

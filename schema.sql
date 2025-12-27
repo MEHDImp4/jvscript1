@@ -1,36 +1,43 @@
--- Create the SQLite database and tables for the resume application
-
 CREATE TABLE IF NOT EXISTS users (
-    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL AUTO_INCREMENT,
     name VARCHAR(128),
-    email VARCHAR(128) UNIQUE,
-    password VARCHAR(255)
-);
+    email VARCHAR(128),
+    password VARCHAR(128),
+    PRIMARY KEY(user_id),
+    INDEX(email),
+    INDEX(password)
+) ENGINE=InnoDB CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS Profile (
-    profile_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    profile_id INTEGER NOT NULL AUTO_INCREMENT,
     user_id INTEGER,
-    first_name TEXT,
-    last_name TEXT,
-    email TEXT,
-    headline TEXT,
+    first_name VARCHAR(128),
+    last_name VARCHAR(128),
+    email VARCHAR(128),
+    headline VARCHAR(256),
     summary TEXT,
-    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
-);
+    PRIMARY KEY(profile_id)
+) ENGINE=InnoDB CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS Institution (
+    institution_id INTEGER NOT NULL AUTO_INCREMENT,
+    name VARCHAR(255),
+    PRIMARY KEY(institution_id),
+    UNIQUE(name)
+) ENGINE=InnoDB CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS Position (
-    position_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    position_id INTEGER NOT NULL AUTO_INCREMENT,
     profile_id INTEGER,
     rank INTEGER,
     year INTEGER,
     description TEXT,
-    FOREIGN KEY (profile_id) REFERENCES Profile (profile_id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS Institution (
-    institution_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name VARCHAR(255) UNIQUE
-);
+    PRIMARY KEY(position_id),
+    CONSTRAINT position_ibfk_1 
+        FOREIGN KEY (profile_id) 
+        REFERENCES Profile (profile_id) 
+        ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS Education (
     profile_id INTEGER,
@@ -38,20 +45,15 @@ CREATE TABLE IF NOT EXISTS Education (
     rank INTEGER,
     year INTEGER,
     PRIMARY KEY(profile_id, institution_id),
-    FOREIGN KEY (profile_id) REFERENCES Profile (profile_id) ON DELETE CASCADE,
-    FOREIGN KEY (institution_id) REFERENCES Institution (institution_id) ON DELETE CASCADE
-);
+    CONSTRAINT education_ibfk_1 
+        FOREIGN KEY (profile_id) 
+        REFERENCES Profile (profile_id) 
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT education_ibfk_2 
+        FOREIGN KEY (institution_id) 
+        REFERENCES Institution (institution_id) 
+        ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB CHARSET=utf8;
 
--- Insert initial institutions
-INSERT OR IGNORE INTO Institution (name) VALUES ('University of Michigan');
-INSERT OR IGNORE INTO Institution (name) VALUES ('University of Virginia');
-INSERT OR IGNORE INTO Institution (name) VALUES ('University of Oxford');
-INSERT OR IGNORE INTO Institution (name) VALUES ('University of Cambridge');
-INSERT OR IGNORE INTO Institution (name) VALUES ('Stanford University');
-INSERT OR IGNORE INTO Institution (name) VALUES ('Duke University');
-INSERT OR IGNORE INTO Institution (name) VALUES ('Michigan State University');
-INSERT OR IGNORE INTO Institution (name) VALUES ('Mississippi State University');
-INSERT OR IGNORE INTO Institution (name) VALUES ('Montana State University');
-
--- Insert a sample user
-INSERT OR IGNORE INTO users (name, email, password) VALUES ('Test User', 'test@example.com', '1a52e17fa899cf40fb04cfc42e6352f1');
+-- Insert default users if they don't exist is handled in pdo.php
+-- Insert default institutions is handled in pdo.php
